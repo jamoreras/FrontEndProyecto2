@@ -8,29 +8,47 @@ import '../styles/Home.css'
 
 function Home() {
 
-  const newsUrl = "http://localhost:4000/api/news/"
   const [news, setNews] = useState([]);
   const [category, setCategory] = useState(null);
   const [categoriesList, setCategoriesList] = useState([]);
   let user = JSON.parse(localStorage.getItem('user'));
-  const categoriesUrl = "http://localhost:4000/api/category/"
-  const [token, setToken] = useState(JSON.parse(localStorage.getItem('token'))); 
+  const categoriesUrl = "http://localhost:4000/api/category"
+  const [token, setToken] = useState(JSON.parse(localStorage.getItem('token')));
+  let [guardnew, setGuard] = useState({});
 
   const getNews = async () => {
     try {
-      const datos = await axios.get(newsUrl, {
-        headers:{'Authorization ' : ' Bearer ' + token, 'Content-Type ' : 'application/json'}
-      });
-      let ds = [];
-      datos.data.filter((element) => {
-
-        if (element.userId === user._id) {
-          console.log(element.userId)
-          ds.push(element);
+      const query = `
+      query Query($newsByUserIdId: String) {
+        newsByUserId(id: $newsByUserIdId) {
+          title
+          description
+          permanLink
+          date
+          newsSourceId
+          userId
+          categoryId
+          src
         }
+      }
+       `;
+      const variables = {
+        newsByUserIdId: user.id,
+      };
+
+      axios.post('http://localhost:5000/', { query, variables },
+      ).then(function (response) {
+        console.log(response.data.data);
+        setGuard(response.data.data.newsByUserId);//respaldo de la noticias
+        setNews(response.data.data.newsByUserId);
+        //setCategory(response.data.data.Categorias);
+        // setLoading(false);
+      }).catch(err => {
+        console.console.log(err);
       });
-      setNews(ds);
-      console.log(datos.data)
+
+
+
     } catch (e) {
       console.log(e);
     }
@@ -46,7 +64,7 @@ function Home() {
   const getCategories = async () => {
     try {
       const datos = await axios.get(categoriesUrl, {
-        headers:{'Authorization ' : ' Bearer ' + token, 'Content-Type ' : 'application/json'}
+        headers: { 'Authorization ': ' Bearer ' + token, 'Content-Type ': 'application/json' }
       });
       setCategoriesList(datos.data);
     } catch (e) {
@@ -56,27 +74,87 @@ function Home() {
 
 
   const handleCategoryChange = (category) => {
-    if (category === "Todas") {
-      setCategory(null)
+    console.log(category);
+    if (category === "todo") {
+      setNews(guardnew);
     } else {
-      setCategory(category);
+      const query = `
+      query Query($newsByCategoryId: String, $name: String) {
+        newsByCategory(id: $newsByCategoryId, name: $name) {
+          title
+          description
+          permanLink
+          date
+          newsSourceId
+          userId
+          categoryId
+          src
+        }
+      }
+       `;
+      const variables = {
+        newsByCategoryId: user.id,
+        name: category,
+      };
+
+      axios.post('http://localhost:5000/', { query, variables },
+      ).then(function (response) {
+        console.log(response.data.data);
+        setNews(response.data.data.newsByCategory);
+        //setCategory(response.data.data.Categorias);
+        // setLoading(false);
+      }).catch(err => {
+        console.console.log(err);
+      });
     }
-
   };
+  const [searchTerm, setSearchTerm] = useState('');
+  const handleSearch = () => {
+    const query = `
+    query NewsBySearch($newsBySearchId: String, $valor: String) {
+      newsBySearch(id: $newsBySearchId, valor: $valor) {
+        title
+        description
+        permanLink
+        date
+        newsSourceId
+        userId
+        categoryId
+        src
+      }
+    }
+     `;
+    const variables = {
+      newsBySearchId: user.id,
+      valor: searchTerm,
+    };
 
-  const filteredNews = category && category !== "Todas"
-    ? news.filter((item) => item.category === category)
-    : news;
-
+    axios.post('http://localhost:5000/', { query, variables },
+    ).then(function (response) {
+      console.log(response.data.data);
+      setNews(response.data.data.newsBySearch);
+      //setCategory(response.data.data.Categorias);
+      // setLoading(false);
+    }).catch(err => {
+      console.console.log(err);
+    });
+  }
+  
 
 
   return (
     <>
       <NavbarUser />
       <h1>NEWS COVER</h1>
+      <div className='search'>
+        <input type='text' placeholder='Buscar...' onChange={(e) => setSearchTerm(e.target.value)} />
+        <button onClick={handleSearch}>Buscar</button>
+      </div>
+
       <div className='categorias'>
         <FloatingLabel className="mb-3" controlId="floatingSelect" label="Select category">
-          <Form.Select className="select" aria-label="Floating label select example" value={category} onChange={(e) => setCategory(e.target.value)} onclick={() => handleCategoryChange(category)}>
+          <Form.Select className="select" aria-label="Floating label select example" value={category} onChange={(e) => { setCategory(e.target.value); handleCategoryChange(e.target.value); }}>
+            <option value="todo">Todo</option>
             {categoriesList.map((cat) => {
               return (
                 <option key={cat._id} value={cat.name}>
@@ -89,7 +167,7 @@ function Home() {
       </div>
       <div className='noticias'>
         {
-          filteredNews.map((item) => (
+          news.map((item) => (
             <Cards item={item} key={item._id} />
           ))
         }

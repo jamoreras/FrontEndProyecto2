@@ -35,13 +35,7 @@ function Login() {
 
                 console.log(response);
 
-                if (response.data.message !== "Datos Incorrectos") {
-                    // token = response.data.token
-                    //localStorage.setItem('token', JSON.stringify(token));
-                    // user = response.data.userId
-                    //localStorage.setItem('user', JSON.stringify(user));
-
-                    //navigate('/home');
+                if (response.data.message !== "Datos Incorrectos") {                   
                     setEstado(true);
                     setToken(response.data.token);
                     setUser(response.data.userId);
@@ -52,7 +46,11 @@ function Login() {
             });
 
     }
-
+    const handlePasswordless = () => {
+        navigate('/Passwordles/Solicitud');
+        console.log('Passwordless button clicked!');
+    };
+    
 
 
     return (
@@ -60,7 +58,7 @@ function Login() {
         <>
             {estado ? (
                 <>
-                    <ValidacionTwilio email={email} token={token} user={user}/>
+                    <ValidacionTwilio email={email} token={token} user={user} />
                 </>
             ) : (
                 <>
@@ -87,6 +85,9 @@ function Login() {
                         </Container> <br />
 
                         <p className='container col-lg-6 col-md-8 col-sm-12 p-4'> Si no tiene cuenta <a href="./registro" target="_blank" rel="noreferrer"> Registrese aqui</a></p>
+                        <Button className='col-md-4' variant="outline-secondary" size="lg" onClick={handlePasswordless}>
+                            Passwordless
+                        </Button>
 
                     </Form>
                 </>

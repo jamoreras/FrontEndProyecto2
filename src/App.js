@@ -9,6 +9,9 @@ import Category from './pages/Category';
 import './App.css';
 import Confirmar from './pages/Confirmar';
 import ValidacionTwilio from './pages/ValidacionTwilio';
+import SolicitudPass from './pages/passs/index';
+import ConfimarPass from './pages/passs/Confirmar';
+
 function App() {
 
   const [showNav, setShowNav] = useState(true);
@@ -31,7 +34,9 @@ function App() {
             <Route path='/adminPage' element={<AdminPage/>} />
             <Route path='/category' element={<Category/>} />
             <Route path='confirmar' element={<Confirmar/>}/>
-            <Route path='ValidacionTwilio' element={< ValidacionTwilio/>}/>
+            <Route path='/Passwordles/Solicitud' element={< SolicitudPass/>}/>
+            <Route path='/passwordless' element={< ConfimarPass/>}/>
+
           </Route>
         </Routes>
       </BrowserRouter>
